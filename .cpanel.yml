@@ -5,6 +5,8 @@ deployment:
     - /bin/cp index.html $DEPLOYPATH
     - /bin/cp style.css $DEPLOYPATH
     - /bin/cp Images $DEPLOYPATH
+    - /bin/cp Test.py $DEPLOYPATH
     - index.html $DEPLOYPATH
     - style.css $DEPLOYPATH
     - Images $DEPLOYPATH
+    - Test.py $DEPLOYPATH
