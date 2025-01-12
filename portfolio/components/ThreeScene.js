@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useRouter } from "next/navigation";
-import gsap from 'gsap';
+import gsap from "gsap";
+
+const touchTime = 200;
 
 const ThreeScene = () => {
   const mountRef = useRef(null);
@@ -12,6 +14,7 @@ const ThreeScene = () => {
     0,
     5, // Default camera position
   ]);
+  const touchStart = useRef(Date.now());
 
   useEffect(() => {
     const handleResize = () => {
@@ -32,7 +35,7 @@ const ThreeScene = () => {
       0.1,
       1000
     );
-    camera.position.set(...initialCameraPosition.current)
+    camera.position.set(...initialCameraPosition.current);
 
     // Renderer
     const renderer = new THREE.WebGLRenderer();
@@ -76,7 +79,7 @@ const ThreeScene = () => {
     // Handle mouse click
     const handleMouseClick = (event) => {
       // Update the raycaster
-      raycaster.setFromCamera(new THREE.Vector2(0,0), camera);
+      raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
 
       // Check for intersections
       const intersects = raycaster.intersectObjects(objects.current);
@@ -94,7 +97,7 @@ const ThreeScene = () => {
             duration: 1,
             onComplete: () => {
               router.push(link); // Redirect after animation
-              camera.position.set(...initialCameraPosition.current)
+              camera.position.set(...initialCameraPosition.current);
             },
           });
         }
@@ -109,12 +112,12 @@ const ThreeScene = () => {
       const intersects = raycaster.intersectObjects(objects.current);
 
       objects.current.forEach(function (object) {
-        object.material.emissive = new THREE.Color('black');
+        object.material.emissive = new THREE.Color("black");
       });
 
       if (intersects.length > 0) {
-        intersects[0].object.material.emissive = new THREE.Color('green');
-        router.prefetch(intersects[0].object.userData.link)
+        intersects[0].object.material.emissive = new THREE.Color("green");
+        router.prefetch(intersects[0].object.userData.link);
       }
 
       mouseX = (event.clientX / window.innerWidth) * 2 - 1; // Normalize to -1 to 1
@@ -124,37 +127,80 @@ const ThreeScene = () => {
     // Add event listener for mouse move
     window.addEventListener("mousemove", handleMouseMove);
 
+    const handleTouchStart = (event) => {
+      event.preventDefault();
+      if (event.changedTouches.length === 1) {
+        touchStart.current = Date.now();
+      }
+    };
+
+    window.addEventListener("touchstart", handleTouchStart);
+
+    const handleTouchMove = (event) => {
+      event.preventDefault();
+      if (Date.now() - touchStart.current > touchTime) {
+        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+        const intersects = raycaster.intersectObjects(objects.current);
+
+        objects.current.forEach(function (object) {
+          object.material.emissive = new THREE.Color("black");
+        });
+
+        if (intersects.length > 0) {
+          intersects[0].object.material.emissive = new THREE.Color("green");
+          router.prefetch(intersects[0].object.userData.link);
+        }
+
+        let touch = event.targetTouches[event.targetTouches.length - 1];
+
+        mouseX = (touch.clientX / window.innerWidth) * 2 - 1; // Normalize to -1 to 1
+        mouseY = -(touch.clientY / window.innerHeight) * 2 + 1; // Normalize to -1 to 1  
+      }
+    };
+
+    window.addEventListener("touchmove", handleTouchMove);
+
+    const handleTouchEnd = (event) => {
+      event.preventDefault();
+      if (Date.now() - touchStart.current <= touchTime) {
+        handleMouseClick();
+      }
+      touchStart.current = Date.now();
+    };
+
+    window.addEventListener("touchend", handleTouchEnd);
+
     // Animation loop
     const animate = () => {
         requestAnimationFrame(animate);
 
-        // Rotate the cube
+      // Rotate the cube
         cube.rotation.x += 0.01;
         cube.rotation.y += 0.01;
 
         camera.rotation.x = mouseY * -0.5; // Adjust the multiplier for sensitivity
         camera.rotation.y = mouseX * 0.5; // Adjust the multiplier for sensitivity
 
-        // Render the scene
+      // Render the scene
         renderer.render(scene, camera);
     };
     animate();
 
     // Cleanup on unmount
     return () => {
-        window.removeEventListener("click", handleMouseClick);
-        window.removeEventListener("resize", handleResize);
-        renderer.dispose();
-        mountRef.current.removeChild(renderer.domElement);
+      window.removeEventListener("click", handleMouseClick);
+      window.removeEventListener("resize", handleResize);
+      renderer.dispose();
+      mountRef.current.removeChild(renderer.domElement);
     };
   }, [router]);
 
   return (
-    <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
-        <div ref={mountRef} className="canvas-container"></div>
-        <div className="crosshair"></div>
+    <div style={{ position: "relative", width: "100vw", height: "100vh" }}>
+      <div ref={mountRef} className="canvas-container"></div>
+      <div className="crosshair"></div>
     </div>
-);
+  );
 };
 
 export default ThreeScene;
