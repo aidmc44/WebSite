@@ -53,9 +53,8 @@ const ThreeScene = () => {
     cube.position.set(-2, 0, 0);
     scene.add(cube);
 
-    // lights
+    // Lights
     const ambient = new THREE.AmbientLight(0xffffff, 0.01);
-
     const light = new THREE.PointLight();
     const lightprobe = new THREE.PointLightHelper(light);
 
@@ -66,7 +65,7 @@ const ThreeScene = () => {
     scene.add(lightprobe);
     scene.add(ambient);
 
-    cube.userData.link = "/404";
+    cube.userData.link = "/photography";
     objects.current.push(cube);
 
     // Mouse movement variables
@@ -97,7 +96,6 @@ const ThreeScene = () => {
             duration: 1,
             onComplete: () => {
               router.push(link); // Redirect after animation
-              camera.position.set(...initialCameraPosition.current);
             },
           });
         }
@@ -108,10 +106,13 @@ const ThreeScene = () => {
     window.addEventListener("click", handleMouseClick);
 
     const handleMouseMove = (event) => {
-      raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+      mouseX = (event.clientX / window.innerWidth) * 2 - 1; // Normalize to -1 to 1
+      mouseY = -(event.clientY / window.innerHeight) * 2 + 1; // Normalize to -1 to 1
+
+      raycaster.setFromCamera({ x: 0, y: 0 }, camera);
       const intersects = raycaster.intersectObjects(objects.current);
 
-      objects.current.forEach(function (object) {
+      objects.current.forEach((object) => {
         object.material.emissive = new THREE.Color("black");
       });
 
@@ -119,9 +120,6 @@ const ThreeScene = () => {
         intersects[0].object.material.emissive = new THREE.Color("green");
         router.prefetch(intersects[0].object.userData.link);
       }
-
-      mouseX = (event.clientX / window.innerWidth) * 2 - 1; // Normalize to -1 to 1
-      mouseY = -(event.clientY / window.innerHeight) * 2 + 1; // Normalize to -1 to 1
     };
 
     // Add event listener for mouse move
@@ -139,10 +137,15 @@ const ThreeScene = () => {
     const handleTouchMove = (event) => {
       event.preventDefault();
       if (Date.now() - touchStart.current > touchTime) {
-        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+        let touch = event.targetTouches[event.targetTouches.length - 1];
+
+        mouseX = (touch.clientX / window.innerWidth) * 2 - 1; // Normalize to -1 to 1
+        mouseY = -(touch.clientY / window.innerHeight) * 2 + 1; // Normalize to -1 to 1
+
+        raycaster.setFromCamera({ x: 0, y: 0 }, camera);
         const intersects = raycaster.intersectObjects(objects.current);
 
-        objects.current.forEach(function (object) {
+        objects.current.forEach((object) => {
           object.material.emissive = new THREE.Color("black");
         });
 
@@ -150,11 +153,6 @@ const ThreeScene = () => {
           intersects[0].object.material.emissive = new THREE.Color("green");
           router.prefetch(intersects[0].object.userData.link);
         }
-
-        let touch = event.targetTouches[event.targetTouches.length - 1];
-
-        mouseX = (touch.clientX / window.innerWidth) * 2 - 1; // Normalize to -1 to 1
-        mouseY = -(touch.clientY / window.innerHeight) * 2 + 1; // Normalize to -1 to 1  
       }
     };
 
@@ -172,17 +170,17 @@ const ThreeScene = () => {
 
     // Animation loop
     const animate = () => {
-        requestAnimationFrame(animate);
+      requestAnimationFrame(animate);
 
       // Rotate the cube
-        cube.rotation.x += 0.01;
-        cube.rotation.y += 0.01;
+      cube.rotation.x += 0.01;
+      cube.rotation.y += 0.01;
 
-        camera.rotation.x = mouseY * -0.5; // Adjust the multiplier for sensitivity
-        camera.rotation.y = mouseX * 0.5; // Adjust the multiplier for sensitivity
+      camera.rotation.x = mouseY * -0.5; // Adjust the multiplier for sensitivity
+      camera.rotation.y = mouseX * 0.5; // Adjust the multiplier for sensitivity
 
       // Render the scene
-        renderer.render(scene, camera);
+      renderer.render(scene, camera);
     };
     animate();
 
@@ -190,8 +188,19 @@ const ThreeScene = () => {
     return () => {
       window.removeEventListener("click", handleMouseClick);
       window.removeEventListener("resize", handleResize);
-      renderer.dispose();
-      mountRef.current.removeChild(renderer.domElement);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+
+      if (mountRef.current) {
+        mountRef.current.removeChild(renderer.domElement);
+      }
+
+      renderer.dispose(); // Dispose renderer
+      geometry.dispose(); // Dispose geometry
+      material.dispose(); // Dispose material
+      scene.clear(); // Clear scene objects
     };
   }, [router]);
 
