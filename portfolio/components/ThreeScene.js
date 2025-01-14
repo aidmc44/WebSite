@@ -186,21 +186,10 @@ const ThreeScene = () => {
 
     // Cleanup on unmount
     return () => {
-      window.removeEventListener("click", handleMouseClick);
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("touchend", handleTouchEnd);
-
-      if (mountRef.current) {
-        mountRef.current.removeChild(renderer.domElement);
-      }
-
-      renderer.dispose(); // Dispose renderer
-      geometry.dispose(); // Dispose geometry
-      material.dispose(); // Dispose material
-      scene.clear(); // Clear scene objects
+        if (mountRef.current) {
+            mountRef.current.removeChild(renderer.domElement)
+        }
+        renderer.dispose()
     };
   }, [router]);
 

@@ -26,6 +26,7 @@
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease-in-out;
+    aspect-ratio: 16/9;
 }
   
 .card:hover {
@@ -38,5 +39,26 @@
     height: auto;
     display: block;
     object-fit: cover;
+    aspect-ratio: 16/9;
 }  
+  
+.popupOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    z-index: 1000;
+  }
+      
+  .popupImage {
+    max-width: 100%;  
+    max-height: 100%; 
+    width: auto;
+    height: 90vh;     
+  }
   

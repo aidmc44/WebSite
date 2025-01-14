@@ -1,5 +1,5 @@
 "use client";
-import React, {useEffect} from "react";
+import React from "react";
 import ThreeScene from "../components/ThreeScene";
 
 export default function Home() {
